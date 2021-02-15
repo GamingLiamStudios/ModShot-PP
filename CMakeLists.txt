@@ -12,7 +12,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
 find_package(SFML REQUIRED COMPONENTS window graphics audio)
 
 add_subdirectory(extern)
-add_subdirectory(data_translator)
+# add_subdirectory(data_translator)
 
 set(SOURCE_FILES
     # MAIN
