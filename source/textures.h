@@ -22,18 +22,12 @@ namespace
     public:
         int push_texture(std::string &str)
         {
-            std::cout << "Loading " << str << "\n";
-            if (indexer.find(str) != indexer.end())
-            {
-                auto index = indexer[str];
-                textures[index].second++;
-                return index;
-            }
+            std::cout << "Loading '" << str << "'\n";
+            if (indexer.find(str) != indexer.end()) return indexer[str];
             auto texture = new sf::Texture();
             texture->loadFromFile("./" + str + ".png");
-            textures.push_back(std::make_pair(texture, int(1)));
+            textures.push_back(std::make_pair(texture, int(0)));
             indexer[str] = textures.size() - 1;
-            std::cout << "Loaded at index " << textures.size() - 1 << "\n";
             return textures.size() - 1;
         }
         void pop_texture(int index)
@@ -42,7 +36,6 @@ namespace
             textures[index].second--;
             if (textures[index].second == 0)
             {
-                std::cout << "Removing index " << index << "\n";
                 delete textures[index].first;
                 textures.erase(textures.begin() + index);
 
@@ -52,7 +45,11 @@ namespace
                   [index](const std::unordered_map<std::string, int>::value_type &vt) {
                       return vt.second == index;
                   });
-                if (it != indexer.end()) indexer.erase(it);
+                if (it == indexer.end())
+                    std::__throw_runtime_error("TexCache Index is not in indexer");
+
+                std::cout << "Unloading '" << it->first << "'\n";
+                indexer.erase(it);
             }
         }
         inline sf::Texture *operator[](int index)

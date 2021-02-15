@@ -20,7 +20,6 @@ set(SOURCE_FILES
 
     # WORLD
     source/world/character.cpp
-    source/world/map.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})

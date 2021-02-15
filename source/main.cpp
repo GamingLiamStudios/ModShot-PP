@@ -63,7 +63,7 @@ int main()
 Game::Game(int width, int height, const char *title)
 {
     window.create(sf::VideoMode(width, height), title);
-    // window.setFramerateLimit(40);    // Fixed FPS
+    window.setFramerateLimit(40);    // Fixed FPS
     running = window.isOpen();
 
     player        = Character("niko", "bulb", { 0, 0 });
