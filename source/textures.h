@@ -65,4 +65,4 @@ namespace
 }    // namespace
 #endif
 
-static TextureMap loaded_textures;
+static TextureMap texture_cache;

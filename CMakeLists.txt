@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.9)
-project(OneShot)
+project(ModShotPP)
 
 if(NOT MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
@@ -8,17 +8,19 @@ endif()
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
 
-# Find OpenSSL
+# Find SFML
 find_package(SFML REQUIRED COMPONENTS window graphics audio)
 
 add_subdirectory(extern)
+add_subdirectory(data_translator)
 
 set(SOURCE_FILES
     # MAIN
     source/main.cpp
 
-    # CHARACTERS
-    source/characters/character.cpp
+    # WORLD
+    source/world/character.cpp
+    source/world/map.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})

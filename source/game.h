@@ -1,8 +1,11 @@
 #pragma once
 
+#include <vector>
+#include <string>
+
 #include <SFML/Graphics.hpp>
 
-#include "characters/character.h"
+#include "world/character.h"
 #include "util/types.h"
 
 class Game
@@ -18,7 +21,7 @@ private:
         u8        held : 4;
         Direction dir : 4;
     } next_dir;
-    u8 moving;
+    bool moving;
 
 public:
     Game(int width, int height, const char *title);
@@ -26,6 +29,7 @@ public:
     bool update();
     bool render();
 
+    void set_window_title(std::string title);
     void close();
 
     bool running;

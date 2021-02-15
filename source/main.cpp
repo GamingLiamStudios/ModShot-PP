@@ -1,27 +1,59 @@
 #include <iostream>
 #include <chrono>
+#include <cassert>
 
-#include "oneshot.h"
+#include "game.h"
+#include "textures.h"
 #include <boxer/boxer.h>
+
+#ifndef GAME_TITLE
+#define GAME_TITLE "ModShotPP"
+#endif
 
 int main()
 {
-    Game oneshot(640, 480, "OneShot");
+    Game game(640, 480, GAME_TITLE);
 
-    while (oneshot.running)
+    auto        last   = std::chrono::high_resolution_clock::now();
+    auto        timer  = std::chrono::high_resolution_clock::now();
+    const float ns     = 1000000000 / 40.f;
+    float       delta  = 0;
+    int         frames = 0;
+
+    // Delta-time not needed due to window.display blocking
+    while (game.running)
     {
-        // Handles Updates to game(Water tiles, Movement, Dialogue, etc)
-        if (!oneshot.update())
+        auto now = std::chrono::high_resolution_clock::now();
+        delta += (now - last).count() / ns;
+        last = now;
+
+        while (delta >= 1.)
         {
-            boxer::show("Failed to Tick!", "OneShot", boxer::Style::Error);
-            oneshot.close();
+            // Handles Updates to game(Water tiles, Movement, Dialogue, etc)
+            if (!game.update())
+            {
+                boxer::show("Failed to Tick!", GAME_TITLE, boxer::Style::Error);
+                game.close();
+                break;
+            }
+
+            delta--;
+        }
+
+        // Actually renders the game
+        if (!game.render())
+        {
+            boxer::show("Failed to Render!", GAME_TITLE, boxer::Style::Error);
+            game.close();
             break;
         }
-        // Actually renders the game
-        if (!oneshot.render())
+        frames++;
+
+        if (now - timer >= std::chrono::seconds(1))
         {
-            boxer::show("Failed to Render!", "OneShot", boxer::Style::Error);
-            oneshot.close();
+            game.set_window_title(std::string(GAME_TITLE) + " FPS: " + std::to_string(frames));
+            frames = 0;
+            timer += std::chrono::seconds(1);
         }
     }
 
@@ -31,10 +63,10 @@ int main()
 Game::Game(int width, int height, const char *title)
 {
     window.create(sf::VideoMode(width, height), title);
-    window.setFramerateLimit(40);    // Fixed FPS
+    // window.setFramerateLimit(40);    // Fixed FPS
     running = window.isOpen();
 
-    player        = Character("niko", "bulb");
+    player        = Character("niko", "bulb", { 0, 0 });
     moving        = 0;
     next_dir.held = false;
 }
@@ -51,6 +83,8 @@ bool Game::update()
         // Input Handling
         case sf::Event::KeyPressed:
         {
+            player.running(event.key.shift);
+
             auto old = next_dir.held;
             switch (event.key.code)
             {
@@ -94,13 +128,14 @@ bool Game::update()
                     case 0b1000: next_dir.dir = Direction::Right; break;
                     }
 
-                moving &= ~1;
-                moving |= move ? 1 : 0;
+                moving = move;
             }
         }
         break;
         case sf::Event::KeyReleased:
         {
+            player.running(event.key.shift);
+
             auto old = next_dir.held;
             switch (event.key.code)
             {
@@ -145,32 +180,15 @@ bool Game::update()
                     case 0b1000: next_dir.dir = Direction::Left; break;
                     }
 
-                moving &= ~1;
-                moving |= move ? 1 : 0;
+                moving = move;
             }
         }
         break;
         }
     }
 
-    if (next_dir.held && !(moving >> 1)) player.set_direction(next_dir.dir);
-    if (moving)
-    {
-        const int walk_speed = 16;    // Magic number
-        if (((moving >> 1) % (walk_speed / 2)) == 0) player.inc_frame();
-
-        switch (player.get_direction())
-        {
-        case Direction::Up: world.move(sf::Vector2f(0, 48 / float(walk_speed))); break;
-        case Direction::Down: world.move(sf::Vector2f(0, -(48 / float(walk_speed)))); break;
-        case Direction::Right: world.move(sf::Vector2f(32 / float(walk_speed), 0)); break;
-        case Direction::Left: world.move(sf::Vector2f(-(32 / float(walk_speed)), 0)); break;
-        }
-
-        moving += 0b10;
-
-        if ((moving >> 1) >= walk_speed) moving &= 1;
-    }
+    if (next_dir.held && moving) player.move(next_dir.dir);
+    player.update();
 
     return true;
 }
@@ -179,16 +197,20 @@ bool Game::render()
 {
     window.clear(sf::Color::Black);
 
-    window.draw(world);
-
     auto player_sprite = player.get_sprite();
     player_sprite.setPosition(
       640 / 2 - player_sprite.getTextureRect().width / 2,
       480 / 2 - player_sprite.getTextureRect().height / 2);
+    player_sprite.move({ player.get_position().x * 48, player.get_position().y * 32 });
     window.draw(player_sprite);
 
     window.display();
     return true;
+}
+
+void Game::set_window_title(std::string title)
+{
+    window.setTitle(title);
 }
 
 void Game::close()
