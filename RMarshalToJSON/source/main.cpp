@@ -31,7 +31,7 @@ void any_to_json(std::any &any, std::string &j)
             any_to_json(pair.second, j);
             j += ",";
         }
-        j.pop_back();
+        if (obj.list.size() > 0) j.pop_back();
         j += "}}";
     }
     else if (any.type() == typeid(i32))
@@ -42,6 +42,7 @@ void any_to_json(std::any &any, std::string &j)
     {
         j += "[";
         for (auto &i : std::any_cast<std::vector<u8>>(any)) j += std::to_string(i) + ",";
+        if (j.back() == '[') j += ",";
         j.back() = ']';
     }
     else if (any.type() == typeid(Color))
@@ -54,9 +55,9 @@ void any_to_json(std::any &any, std::string &j)
     else if (any.type() == typeid(Table))
     {
         auto table = std::any_cast<Table>(any);
-        j += "{\"x\":" + std::to_string(table.x_size) + ",y\":" + std::to_string(table.y_size) +
-          ",z\":" + std::to_string(table.z_size) + ",\"size\":" + std::to_string(table.total_size) +
-          ",\"data\":[";
+        j += "{\"x\":" + std::to_string(table.x_size) + ",\"y\":" + std::to_string(table.y_size) +
+          ",\"z\":" + std::to_string(table.z_size) +
+          ",\"size\":" + std::to_string(table.data.size()) + ",\"data\":[";
 
         for (int z = 0; z < table.z_size; z++)
         {
@@ -73,13 +74,14 @@ void any_to_json(std::any &any, std::string &j)
             j.pop_back();
             j += "],";
         }
-        j.pop_back();
-        j += "],";
+        if (table.z_size > 0) j.pop_back();
+        j += "]}";
     }
     else if (any.type() == typeid(std::vector<std::any>))
     {
         auto list = std::any_cast<std::vector<std::any>>(any);
-        j += "[";
+        j += list.size() == 0 ? "[," : "[";
+
         for (auto &a : list)
         {
             any_to_json(a, j);
@@ -90,7 +92,7 @@ void any_to_json(std::any &any, std::string &j)
     else if (any.type() == typeid(std::unordered_map<i32, std::any>))
     {
         auto map = std::any_cast<std::unordered_map<i32, std::any>>(any);
-        j += "{";
+        j += map.size() == 0 ? "{," : "{";
         for (auto &pair : map)
         {
             j += "\"" + std::to_string(pair.first) + "\":";
@@ -110,7 +112,8 @@ int main(int argc, const char *argv[])
     }
 
     std::ifstream file;
-    file.open(argv[1], std::ios::binary);
+    file.open("./Map001.rxdata", std::ios::binary);
+    // file.open(argv[1], std::ios::binary);
 
     // Verify Version
     char version[2];

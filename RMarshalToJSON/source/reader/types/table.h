@@ -2,7 +2,7 @@
 
 #include "util/types.h"
 
-#include <memory>
+#include <vector>
 
 struct Table
 {
@@ -10,6 +10,5 @@ struct Table
     i32 y_size;
     i32 z_size;
 
-    i32                    total_size;
-    std::shared_ptr<i16[]> data;
+    std::vector<i16> data;
 };

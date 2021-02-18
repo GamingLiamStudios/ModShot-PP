@@ -17,9 +17,8 @@ Reader::Reader(std::ifstream &file)
 std::any Reader::parse()
 {
     int type = file->get();
-    // std::cout << "type: " << (char) type << "\n";
-
     if (file->eof()) std::__throw_ios_failure("Unexpected EOF");
+    std::cout << "type: " << (char) type << ", offset: " << file->tellg() - 1 << "\n";
 
     auto ios_failure = [](std::string err) {
         std::__throw_ios_failure(err.c_str());
@@ -46,7 +45,7 @@ std::any Reader::parse()
 
             x              = -1;
             const u32 mask = ~(0xff << 24);
-            for (int i = 0; i < 4; i++) x = (i < c ? file->get() << 24 : 0) | ((x >> 8) & mask);
+            for (int i = 0; i < 4; i++) x = (i < c ? file->get() << 24 : 0xff) | ((x >> 8) & mask);
         }
 
         return x;
@@ -59,7 +58,6 @@ std::any Reader::parse()
         i32 index = read_fixnum();
         return object_cache.at(index - 1);
     }
-    break;
     case 'I':    // IVar
         ios_failure("Not yet Implemented: IVar");
     case 'e':    // Extended
@@ -90,7 +88,6 @@ std::any Reader::parse()
         object_cache.push_back(v);
         return v;
     }
-    break;
     case 'l':    // Bignum
     {
         int  sign = file->get();
@@ -102,9 +99,7 @@ std::any Reader::parse()
         // TODO
 
         ios_failure("Not yet Implemented: Bignum");
-        return NULL;
     }
-    break;
     case '"':    // String
     {
         auto str = std::string(read_fixnum(), '0');
@@ -115,22 +110,27 @@ std::any Reader::parse()
     }
     case '/':    // RegExp
         ios_failure("Not yet Implemented: RegExp");
-        break;
     case '[':    // Array
     {
         std::vector<std::any> arr;
         i32                   len = read_fixnum();
-
         arr.reserve(len);
-        for (long i = 0; i < len; i++) arr.push_back(parse());
 
         object_cache.push_back(arr);
-        return arr;
+        auto index = object_cache.size() - 1;
+
+        for (long i = 0; i < len; i++)
+            std::any_cast<std::vector<std::any> &>(object_cache.at(index)).push_back(parse());
+
+        return object_cache.at(index);
     }
     case '{':    // Hash
     {
         std::unordered_map<i32, std::any> map;
         auto                              length = read_fixnum();
+
+        object_cache.push_back(map);
+        auto index = object_cache.size() - 1;
 
         for (i32 i = 0; i < length; i++)
         {
@@ -140,26 +140,23 @@ std::any Reader::parse()
 
             auto value = parse();
 
-            map.insert(std::pair(std::any_cast<i32>(key), value));
+            std::any_cast<std::unordered_map<i32, std::any> &>(object_cache.at(index))
+              .insert(std::pair(std::any_cast<i32>(key), value));
         }
 
-        object_cache.push_back(map);
-        return map;
+        return object_cache.at(index);
     }
-    break;
     case '}':    // HashDef
         ios_failure("Not yet Implemented: HashDef");
-        break;
     case 'S':    // Struct
         ios_failure("Not yet Implemented: Struct");
-        break;
     case 'u':    // UserDef
     {
         std::string name;
         auto        pname = parse();
         if (pname.type() == typeid(std::vector<u8>))
         {
-            auto vec = std::any_cast<std::vector<u8>>(pname);
+            auto vec = std::any_cast<std::vector<u8> &>(pname);
             name.reserve(vec.size());
             name.append(vec.begin(), vec.end());
         }
@@ -188,29 +185,28 @@ std::any Reader::parse()
             file->read((char *) &table.y_size, 4);
             file->read((char *) &table.z_size, 4);
 
-            file->read((char *) &table.total_size, sizeof(i32));
-            table.data = std::make_shared<i16[]>(table.total_size);
+            i32 size;
+            file->read((char *) &size, sizeof(i32));
 
-            for (i32 i = 0; i < table.total_size; i++)
-                file->read((char *) &table.data[i], sizeof(i16));
+            table.data.resize(size);
+            for (i32 i = 0; i < size; i++) file->read((char *) &table.data[i], sizeof(i16));
 
-            object_cache.push_back(std::make_any<Table>(table));
+            object_cache.push_back(table);
+            std::cout << "Here?\n";
             return object_cache.back();
         }
         else
             ios_failure("Unsupported user defined class: " + name);
     }
-    break;
     case 'U':    // User Marshal
         ios_failure("Not yet Implemented: User Marshal");
-        break;
     case 'o':    // Object
     {
         Object o;
         auto   name = parse();
         if (name.type() == typeid(std::vector<u8>))
         {
-            auto vec = std::any_cast<std::vector<u8>>(name);
+            auto vec = std::any_cast<std::vector<u8> &>(name);
             o.name.reserve(vec.size());
             o.name.append(vec.begin(), vec.end());
         }
@@ -218,6 +214,10 @@ std::any Reader::parse()
             ios_failure(std::string("Object name not Symbol"));
 
         auto length = read_fixnum();
+        o.list.reserve(length);
+
+        object_cache.push_back(o);
+        auto index = object_cache.size() - 1;
 
         for (i32 i = 0; i < length; i++)
         {
@@ -228,7 +228,7 @@ std::any Reader::parse()
                     ios_failure(
                       std::string("Object key not symbol: ") + ::demangle(akey.type().name()));
 
-                auto vec = std::any_cast<std::vector<u8>>(akey);
+                auto vec = std::any_cast<std::vector<u8> &>(akey);
                 key      = std::string(vec.begin(), vec.end());
             }
 
@@ -236,16 +236,13 @@ std::any Reader::parse()
 
             auto value = parse();
 
-            o.list.insert(std::pair(key, value));
+            std::any_cast<Object &>(object_cache.at(index)).list.insert(std::pair(key, value));
         }
 
-        object_cache.push_back(o);
-        return o;
+        return object_cache.at(index);
     }
-    break;
     case 'd':    // Data
         ios_failure("Not yet Implemented: Data");
-        break;
     case 'M':    // Module Old
     case 'c':    // Class
     case 'm':    // Module
@@ -261,13 +258,11 @@ std::any Reader::parse()
         symbol_cache.push_back(arr);
         return arr;
     }
-    break;
     case ';':    // Symlink
     {
         i32 index = read_fixnum();
         return symbol_cache.at(index);
     }
-    break;
     default: ios_failure("Unknown Value: " + std::to_string(type));
     }
     return NULL;
