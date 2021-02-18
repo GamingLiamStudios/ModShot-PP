@@ -138,7 +138,7 @@ int main(int argc, const char *argv[])
     std::ofstream outfile;
 
     outfile.open(std::string(argv[1]) + ".json");
-    outfile.write(j.c_str(), j.size() + 1);
+    outfile.write(j.data(), j.size());
     outfile.close();
 
     return 0;
