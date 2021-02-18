@@ -112,8 +112,7 @@ int main(int argc, const char *argv[])
     }
 
     std::ifstream file;
-    file.open("./Map001.rxdata", std::ios::binary);
-    // file.open(argv[1], std::ios::binary);
+    file.open(argv[1], std::ios::binary);
 
     // Verify Version
     char version[2];
@@ -130,9 +129,17 @@ int main(int argc, const char *argv[])
     std::string j;
     Reader      reader(file);
     auto        parse = reader.parse();
-    std::cout << "Converting\n";
 
+    std::cout << "Converting to JSON\n";
     any_to_json(parse, j);
+    std::cout << "Converted!\n";
 
-    std::cout << j << "\n";
+    file.close();
+    std::ofstream outfile;
+
+    outfile.open(std::string(argv[1]) + ".json");
+    outfile.write(j.c_str(), j.size() + 1);
+    outfile.close();
+
+    return 0;
 }

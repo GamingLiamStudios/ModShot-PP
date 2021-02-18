@@ -18,7 +18,6 @@ std::any Reader::parse()
 {
     int type = file->get();
     if (file->eof()) std::__throw_ios_failure("Unexpected EOF");
-    std::cout << "type: " << (char) type << ", offset: " << file->tellg() - 1 << "\n";
 
     auto ios_failure = [](std::string err) {
         std::__throw_ios_failure(err.c_str());
@@ -192,7 +191,6 @@ std::any Reader::parse()
             for (i32 i = 0; i < size; i++) file->read((char *) &table.data[i], sizeof(i16));
 
             object_cache.push_back(table);
-            std::cout << "Here?\n";
             return object_cache.back();
         }
         else
