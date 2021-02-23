@@ -9,33 +9,7 @@ Character::Character(std::string name, std::string variant, sf::Vector2u pos, in
     std::string path = "Graphics/Characters/" + name;
     if (!variant.empty()) path += "_" + variant;
 
-    sheet_index = texture_cache.push_texture(path);
-    sheet       = texture_cache[sheet_index];
-}
-
-Character::Character(const Character &other)
-{
-}
-
-Character::~Character()
-{
-    texture_cache.pop_texture(sheet_index);
-    sheet = nullptr;
-}
-
-Character Character::operator=(const Character &other)
-{
-    this->frames      = other.frames;
-    this->sheet_index = other.sheet_index;
-    this->sheet       = texture_cache[sheet_index];
-
-    this->pos        = other.pos;
-    this->dir        = other.dir;
-    this->frame      = other.frame;
-    this->moving     = other.moving;
-    this->move_speed = other.move_speed;
-
-    return *this;
+    sheet = texture_cache.load_texture(path);
 }
 
 void Character::update()

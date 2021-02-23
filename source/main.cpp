@@ -27,7 +27,7 @@ int main()
         delta += (now - last).count() / ns;
         last = now;
 
-        while (delta >= 1.)
+        while (delta >= 1.f)
         {
             // Handles Updates to game(Water tiles, Movement, Dialogue, etc)
             if (!game.update())
@@ -54,6 +54,8 @@ int main()
             game.set_window_title(std::string(GAME_TITLE) + " FPS: " + std::to_string(frames));
             frames = 0;
             timer += std::chrono::seconds(1);
+
+            texture_cache.purge();
         }
     }
 
@@ -63,7 +65,7 @@ int main()
 Game::Game(int width, int height, const char *title)
 {
     window.create(sf::VideoMode(width, height), title);
-    window.setFramerateLimit(40);    // Fixed FPS
+    // window.setFramerateLimit(40);    // Fixed FPS
     running = window.isOpen();
 
     player        = Character("niko", "bulb", { 0, 0 });

@@ -2,18 +2,18 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 
 #include <SFML/Graphics.hpp>
 
 #include "world/character.h"
 #include "util/types.h"
+#include "textures.h"
 
 class Game
 {
 private:
     sf::RenderWindow window;
-
-    sf::Sprite world;
 
     Character player;
     struct

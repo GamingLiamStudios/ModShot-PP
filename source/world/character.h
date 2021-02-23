@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Texture.hpp>
@@ -12,9 +13,8 @@
 class Character
 {
 private:
-    int          frames;
-    int          sheet_index;
-    sf::Texture *sheet;
+    int                          frames;
+    std::shared_ptr<sf::Texture> sheet;
 
     sf::Vector2f pos;
     Direction    dir;
@@ -26,10 +26,6 @@ private:
 public:
     Character() = default;
     Character(std::string name, std::string variant, sf::Vector2u pos, int frames = 4);
-    ~Character();
-
-    Character(const Character &);
-    Character operator=(const Character &);
 
     void update();
     void move(Direction dir);
