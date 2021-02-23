@@ -25,6 +25,7 @@ set(SOURCE_FILES
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
+target_compile_definitions(${PROJECT_NAME} PRIVATE GAME_TITLE="ModShotPP") # Changing Window Title
 
 target_include_directories(${PROJECT_NAME} PUBLIC "extern")
 target_include_directories(${PROJECT_NAME} PUBLIC "source") # to allow paths relative to project root
