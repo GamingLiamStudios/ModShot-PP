@@ -7,7 +7,7 @@
 #include <boxer/boxer.h>
 
 #ifndef GAME_TITLE
-#define GAME_TITLE "ModShotPP"
+#define GAME_TITLE "OneShot"
 #endif
 
 int main()
@@ -65,8 +65,11 @@ int main()
 Game::Game(int width, int height, const char *title)
 {
     window.create(sf::VideoMode(width, height), title);
-    // window.setFramerateLimit(40);    // Fixed FPS
+    window.setFramerateLimit(80);    // Fixed FPS. Double the normal UPS
     running = window.isOpen();
+
+    center = window.getPosition();
+    shake  = false;
 
     player        = Character("niko", "bulb", { 0, 0 });
     moving        = 0;
@@ -98,6 +101,7 @@ bool Game::update()
             case sf::Keyboard::A: next_dir.held |= 0b0100; break;
             case sf::Keyboard::Key::Right:
             case sf::Keyboard::D: next_dir.held |= 0b1000; break;
+            case sf::Keyboard::O: shake = true; break;
             }
             if (old != next_dir.held)    // Input update
             {
@@ -149,6 +153,11 @@ bool Game::update()
             case sf::Keyboard::A: next_dir.held &= ~0b0100; break;
             case sf::Keyboard::Key::Right:
             case sf::Keyboard::D: next_dir.held &= ~0b1000; break;
+            case sf::Keyboard::O:
+            {
+                shake = false;
+                window.setPosition(center);
+            }
             }
 
             if (old != next_dir.held)    // Input update
@@ -191,6 +200,14 @@ bool Game::update()
 
     if (next_dir.held && moving) player.move(next_dir.dir);
     player.update();
+
+    if (shake)
+    {
+        auto random = sf::Vector2i((std::rand() % 20) - 10, (std::rand() % 20) - 10);
+        window.setPosition(center + random);
+    }
+    else if (window.getPosition() != center)
+        center = window.getPosition();
 
     return true;
 }

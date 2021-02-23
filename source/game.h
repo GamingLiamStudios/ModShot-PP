@@ -14,6 +14,18 @@ class Game
 {
 private:
     sf::RenderWindow window;
+    sf::Vector2i     center;
+    bool             shake;
+
+    struct
+    {
+        struct
+        {
+            int         autotileCount;
+            sf::Texture texture;
+        } atlas;    // Contains all AutoTiles & currently loaded Tilemap
+        sf::VertexArray render;
+    } map;
 
     Character player;
     struct
