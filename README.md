@@ -9,7 +9,7 @@ This project is not affiliated with [ModShot-Core](https://github.com/Astrabit-S
 * Efficent use of memory
 * Map Editing*
 * Full C++ scripting*
-* Easy porting of Original OneShot data
+* Easy porting of Original OneShot data*
 
 \*To be implemented
 
