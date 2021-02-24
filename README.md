@@ -1,8 +1,17 @@
 # ModShot-PP
 OneShot remade in C++. To be used for making OneShot mods.
 
-This project started as a way for me to Create OneShot mods without learning Ruby or RPG Maker XP. 
-I was originally going to keep this private due to licensing & piracy concerns, but I decided against that. I still don't condone Piracy tho.
+This project started as a way for me to create OneShot mods without learning Ruby or RPG Maker XP. 
+This project is not affiliated with [ModShot-Core](https://github.com/Astrabit-ST/ModShot-Core) or any similar projects.
+
+## Features
+* Speed
+* Efficent use of memory
+* Map Editing*
+* Full C++ scripting*
+* Easy porting of Original OneShot data
+
+\*To be implemented
 
 ## Building
 Prerequisites for Building: [CMake](https://cmake.org/download/) & [SFML](https://github.com/SFML/SFML/tree/2.5.1)
