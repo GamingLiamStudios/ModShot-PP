@@ -11,6 +11,3 @@ cmake-build-release/
 
 # CMake
 CMakeSettings.json
-
-# Some Random File
-RMarshalToJSON/source/marshal.c

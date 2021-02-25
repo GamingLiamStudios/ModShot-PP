@@ -6,6 +6,7 @@
 #include "types/color.h"
 #include "types/table.h"
 #include "types/object.h"
+#include "types/tone.h"
 
 #include "util/demangle.h"
 
@@ -58,7 +59,36 @@ std::any Reader::parse()
         return object_cache.at(index - 1);
     }
     case 'I':    // IVar
-        ios_failure("Not yet Implemented: IVar");
+    {
+        auto name = parse();
+        if (name.type() != typeid(std::string))
+            ios_failure(std::string("Unsupported IVar Type: ") + demangle(name.type().name()));
+
+        auto length = read_fixnum();
+
+        object_cache.push_back(name);
+        auto index = object_cache.size() - 1;
+
+        for (i32 i = 0; i < length; i++)
+        {
+            std::string key;
+            {
+                auto akey = parse();
+                if (akey.type() != typeid(std::vector<u8>))
+                    ios_failure(
+                      std::string("IVar key not symbol: ") + ::demangle(akey.type().name()));
+
+                auto vec = std::any_cast<std::vector<u8> &>(akey);
+                key      = std::string(vec.begin(), vec.end());
+            }
+
+            auto value = parse();
+
+            // TODO: Do something with the character encoding
+        }
+
+        return object_cache.at(index);
+    }
     case 'e':    // Extended
         ios_failure("Not yet Implemented: Extended");
     case 'C':    // UClass
@@ -191,6 +221,18 @@ std::any Reader::parse()
             for (i32 i = 0; i < size; i++) file->read((char *) &table.data[i], sizeof(i16));
 
             object_cache.push_back(table);
+            return object_cache.back();
+        }
+        else if (name.compare("Tone") == 0)
+        {
+            Tone tone;
+
+            file->read((char *) &tone.red, sizeof(double));
+            file->read((char *) &tone.green, sizeof(double));
+            file->read((char *) &tone.blue, sizeof(double));
+            file->read((char *) &tone.grey, sizeof(double));
+
+            object_cache.push_back(tone);
             return object_cache.back();
         }
         else
