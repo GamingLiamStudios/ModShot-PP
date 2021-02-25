@@ -10,6 +10,7 @@
 #include "reader/types/color.h"
 #include "reader/types/object.h"
 #include "reader/types/table.h"
+#include "reader/types/tone.h"
 
 namespace fs = std::filesystem;
 
@@ -51,6 +52,12 @@ void any_to_json(std::any &any, std::string &j)
         j += "{\"Red\":" + std::to_string(color.red) + ",\"Green\":" + std::to_string(color.green) +
           ",\"Blue\":" + std::to_string(color.blue) + ",\"Alpha\":" + std::to_string(color.alpha) +
           "}";
+    }
+    else if (any.type() == typeid(Tone))
+    {
+        auto tone = std::any_cast<Tone>(any);
+        j += "{\"Red\":" + std::to_string(tone.red) + ",\"Green\":" + std::to_string(tone.green) +
+          ",\"Blue\":" + std::to_string(tone.blue) + ",\"Grey\":" + std::to_string(tone.grey) + "}";
     }
     else if (any.type() == typeid(Table))
     {
